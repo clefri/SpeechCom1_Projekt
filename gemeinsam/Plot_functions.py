@@ -22,7 +22,7 @@ from ipywidgets import interact, interact_manual, Layout
 from bokeh.plotting import ColumnDataSource, figure, output_file, show
 from bokeh.io import push_notebook, output_notebook
 from bokeh.layouts import gridplot, column, row
-from bokeh.models import ColorBar, LogColorMapper, LogTicker, CustomJS, Slider, LinearAxis, Range1d
+from bokeh.models import ColorBar, LogColorMapper, LogTicker, CustomJS, Slider, LinearAxis, Range1d, ColumnDataSource, Label, LabelSet, ImageURL
 from bokeh.palettes import Greys256
 
 Greys256 = list(Greys256)
@@ -34,11 +34,14 @@ output_notebook(hide_banner=True) # suppress Bokeh banner when loading plots
 #######################################################################
 def get_plot_window(window, dt_win, plottitle, showPlot=False):
 	# Plots the window function
+    #
 	# @param: window The window which sould be plotted
 	# @param: dt_win Time axis, same length as window
 	# @param: plottitle Title of the plot
-	# @param: showPlot: Bool - true if plot should be shown directly, default false
-	# @return: p Plot handle
+	# @param: showPlot Should the plot be shown? Default false
+    #
+	# @return: p Plot handle (only if showPlot=False)
+    #
 	p = figure(title=plottitle, plot_width=600, plot_height=200)
 	p.line(dt_win, window, line_width = 2, color = 'blue')
 	p.xaxis.axis_label = 't in s'
@@ -51,6 +54,18 @@ def get_plot_window(window, dt_win, plottitle, showPlot=False):
 		
 		
 def get_plot_intensity(snd, dt_snd, intensity, dt_intensity, plottitle, showPlot=False):
+    # Plot intwnsity curve (use in conjuction with plot_in_subplots())
+    #
+    # @param: snd Values of audio signal
+    # @param: dt_snd Time axis of audio signal
+    # @param: intensity Values of intensity curve
+    # @param: dt_intensity Time axis of intensity curve
+    # @param: plottitle Title of plot
+    # @param: showPlot Should the plot be shown? Default false
+    #
+    # @return: p Return plot handle (only if showPlot=False)
+    #
+
     TOOLS="hover,crosshair,pan,wheel_zoom,box_zoom,save,reset"
     TOOLTIPS = [
         ("index", "$index"),
@@ -71,9 +86,22 @@ def get_plot_intensity(snd, dt_snd, intensity, dt_intensity, plottitle, showPlot
         return p
 		
 def plot_in_subplots(p1, p2):
+    # Plot two plot as subplots (use in conjuction with get_plot_intensity())
+    #
+    # @param: p1 Plot 1
+    # @param: p2 Plot 2
+    #
     show(column(p1, p2), notebook_handle=False)
 	
 def plot_two_intensity_curves(dt_PM_intensity, PM_intensity_val, dt_SC_intensity, SC_intensity, plottitle):
+    # Plot two intensity curves together
+    #
+    # @param: dt_PM_intensity Time axis of first intensity curve
+    # @param: PM_intensity_val Values of first intensity curve
+    # @param: dt_SC_intensity Time axis of second intensity curve
+    # @param: SC_intensity Values of second intensity curve
+    # @param: plottitle Title of plot
+    #
     TOOLS="hover,crosshair,pan,wheel_zoom,box_zoom,save,reset"
     TOOLTIPS = [
         ("index", "$index"),
@@ -95,6 +123,16 @@ def plot_two_intensity_curves(dt_PM_intensity, PM_intensity_val, dt_SC_intensity
 # PLOT FUNCTIONS EXERCISE 2
 #######################################################################
 def plot_interactive_spectrogram(spectroData, tVec, fVec, plottitle, dynamicRange=50):
+    # This function plots an interactive spectrogram displaying the spectrogram and the spectrum of the selected slice
+    #
+    # @param: spectroData Spectrogram data in dB
+    # @param: tVec Time axis of spectrogram
+    # @param: fVec Frequency axis of spectrogram
+    # @param: plottitle Title of plot
+    # @param: dynamicRange The dynamic range that sould be plotted, default 50dB
+    #
+    # @return: timeWidget Handle to time selector widget
+    #
     layout=Layout(width='650px')
     timeWidget = widgets.FloatSlider(min=tVec[0], max=tVec[-1], step=tVec[1]-tVec[0], value=tVec[0],
                                      description="Time in s")
@@ -150,6 +188,20 @@ def plot_interactive_spectrogram(spectroData, tVec, fVec, plottitle, dynamicRang
 def plot_spectrogram_with_formants(spectroData, tVec, fVec, formantValues, formant_tVec, plottitle,
                                           pitchValues=np.array([np.nan, np.nan]), pitch_tVec=np.array([np.nan, np.nan]),
                                           dynamicRange=50):
+    # This function plot a spectrogram with formants and f0
+    #
+    # @param: spectroData The spectrogram data in dB
+    # @param: tVec Time axis of spectrogram
+    # @param: fVec Frequency axis of spectrogram
+    # @param: formantValues Values of all detected formants
+    # @param: formant_tVec Time axis of formants
+    # @param: plottitle Title of plot
+    # @param: pitchValues Values of f0-contour, default nan -> no f0 coutour is plotted: set if f0 contour should be plotted
+    # @param: pitch_tVec Time axis of f0-contour, default nan -> no f0 coutour is plotted: set if f0 contour should be plotted
+    # @param: dynamicRange Dynamic range, default 50dB
+    #
+
+
     TOOLS="hover,crosshair,pan,wheel_zoom,box_zoom,save,reset"
     TOOLTIPS = [
         ("index", "$index"),
@@ -188,6 +240,117 @@ def plot_spectrogram_with_formants(spectroData, tVec, fVec, formantValues, forma
     p1.legend.orientation = 'vertical'
     show(p1,notebook_handle=True)
     pass
+
+
+def plot_F1_F2_in_vowel_chart(audioVal, dt_snd, F1, F2, formant_tVec, plottitle):
+    # This function plot the formants F1 & F2 in a vowel chart with selectable time region from the corresponding audio file
+    #
+    # @param: audioVal Values of the audio signal in a numpy array
+    # @param: dt_snd Time axis of audio file
+    # @param: F1 Values of Formant F1
+    # @param: F2 Values of Formant F2
+    # @param: formant_tVec Time axis of Formants
+    # @param: plottitle Title of Plot
+    #
+    # @return: timeWidget Handle to time selector widget
+    #
+    layout = Layout(width='650px')
+
+    timeWidget = widgets.FloatRangeSlider(
+        value=[formant_tVec[0], formant_tVec[-1]],
+        min=formant_tVec[0],
+        max=formant_tVec[-1],
+        step=formant_tVec[1] - formant_tVec[0],
+        description='Time range',
+        disabled=False,
+        continuous_update=True,
+        orientation='horizontal',
+        readout=True,
+        readout_format='.4f',
+    )
+
+    timeWidget.layout = layout
+    timeRangeStart = timeWidget.value[0]
+    timeRangeEnd = timeWidget.value[1]
+    timeRangeStartFrame = (np.abs(formant_tVec - timeRangeStart)).argmin()
+    timeRangeEndFrame = (np.abs(formant_tVec - timeRangeEnd)).argmin()
+
+    TOOLS = "hover,crosshair,pan,wheel_zoom,box_zoom,save,reset"
+    TOOLTIPS = [
+        ("index", "$index"),
+        ("(x,y)", "($x, $y)"),
+    ]
+
+    p1 = figure(title="Region of Audio Signal", plot_width=650, plot_height=150, x_range=(dt_snd[0], dt_snd[-1]),
+                y_range=(-1, 1), tools=TOOLS, tooltips=TOOLTIPS)
+    p1.xaxis.axis_label = 'Time in s'
+    p1.yaxis.axis_label = 'lin. Amplidude'
+    p1.line(dt_snd, audioVal, line_width=2)
+
+    timeRangeStartFill = p1.patch([0, timeRangeStart, timeRangeStart,0], [-1, -1, 1,1], alpha=0.5, line_width=0, color='grey')
+    timeRangeEndFill = p1.patch([timeRangeEnd, dt_snd[-1], dt_snd[-1], timeRangeEnd], [-1, -1, 1, 1], alpha=0.5, line_width=0, color='grey')
+
+    timeRangeStartLine = p1.line([timeRangeStart, timeRangeStart], [-1, 1], line_width=2, color='red')
+    timeRangeEndLine = p1.line([timeRangeEnd, timeRangeEnd], [-1, 1], line_width=2, color='red')
+
+    p3 = figure(title=plottitle, plot_width=653, plot_height=418, x_range=(3000,100),
+                y_range=(1100,100), tools=TOOLS, tooltips=TOOLTIPS)
+
+    # DISPLAY GROUND TRUTH FROM SENDLMEIER
+    # image from Sendlmeier paper as background
+    p3.image_url(url=["sendlmeier_formants.png"], x=100, y=100, w=2900, h=1000, anchor="top_right",level='image') #switch on/off
+
+    p3.xaxis.axis_label = 'F2 in Hz'
+    p3.yaxis.axis_label = 'F1 in Hz'
+    formantScatterPlot = p3.scatter(F2[timeRangeStartFrame:timeRangeEndFrame], F1[timeRangeStartFrame:timeRangeEndFrame],legend_label='detected formants')
+
+    # calculated means from Sendlmeier paper as Backgound
+    sendlmeierVowels = ['a','a:','e:','e2','e2:','i','i2:','o','o:','u','u2:','y','y:','oe','o/:','e3']
+    sendlmeierF1 =    [ 765, 817, 391, 549, 533, 401, 283, 571,412, 417, 328, 400, 311, 519, 406, 545]
+    sendlmeierF2 =    [1479,1396,2294,1929,2257,1999,1902,1137,865,1046, 905,1607,1766,1566,1553,1605]
+    sendlmeierData = ColumnDataSource(data=dict(trueF1=sendlmeierF1,
+                                        trueF2=sendlmeierF2,
+                                        trueVow=sendlmeierVowels))
+    labels = LabelSet(x='trueF2', y='trueF1', text='trueVow', level='annotation',
+                      x_offset=0.0, y_offset=0.0, source=sendlmeierData, render_mode='canvas', text_align='center',text_baseline='middle')
+    p3.legend.location = "bottom_left"
+    p3.legend.click_policy = "hide"
+
+    # FINISH PLOT
+    pAll = gridplot([[p3], [p1]])
+    show(pAll, notebook_handle=True)
+
+    def update_plot(timeRangeStart, timeRangeEnd,timeRangeStartFrame,timeRangeEndFrame):
+        # This funtion updates the plot after a change in the time selector widget
+        #
+        # @param: timeRangeStart Begin of time range in seconds
+        # @param: timeRangeEnd End of time range in seconds
+        # @param: timeRangeStartFrame Begin of time range in frames
+        # @param: timeRangeEndFrame End of time range in frames
+        #
+        timeRangeStartLine.data_source.data['x'] = [timeRangeStart, timeRangeStart]
+        timeRangeEndLine.data_source.data['x'] = [timeRangeEnd, timeRangeEnd]
+        timeRangeStartFill.data_source.data['x'] = [0, timeRangeStart, timeRangeStart,0]
+        timeRangeEndFill.data_source.data['x'] = [timeRangeEnd, dt_snd[-1], dt_snd[-1], timeRangeEnd]
+        formantScatterPlot.data_source.data = {'x': F2[timeRangeStartFrame:timeRangeEndFrame],
+                                               'y': F1[timeRangeStartFrame:timeRangeEndFrame]}
+        push_notebook()
+
+    def on_value_change(change):
+        # This function listens for value changes in the time selector widget.
+        # See ipython widgets documentation for more information.
+        #
+        # @param: change
+        #
+        timeRangeStart = timeWidget.value[0]
+        timeRangeEnd = timeWidget.value[1]
+        timeRangeStartFrame = (np.abs(formant_tVec - timeRangeStart)).argmin()
+        timeRangeEndFrame = (np.abs(formant_tVec - timeRangeEnd)).argmin()
+        update_plot(timeRangeStart, timeRangeEnd,timeRangeStartFrame,timeRangeEndFrame)
+
+    timeWidget.observe(on_value_change, names='value')
+    return timeWidget
+
 
 #######################################################################
 # PLOT FUNCTIONS EXERCISE 3
