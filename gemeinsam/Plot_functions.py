@@ -537,10 +537,10 @@ def get_plot_time_domain_sig(snd, dt_snd, plottitle, showPlot):
     #
     # get_plot_time_domain_sig(): plots the time-domain signal of a given 1-D audio-file
     #
-    # Input: snd        ... 1D array containing audio-file which is to be plotted
-    #       dt_snd     ... 1D array containing time-vector of given audio-file
-    #       plottitile ... String containing tile of Plot
-    #       showPlot   ... Bool in order to surpress plot display.
+    # Input: snd        ... 1D np.array containing audio-file which is to be plotted
+    #       dt_snd      ... 1D np.array containing time-vector of given audio-file
+    #       plottitile  ... String containing tile of Plot
+    #       showPlot    ... Bool in order to surpress plot display.
     #                      If set to 'true' plot is displayed.
 
     TOOLS = "hover,crosshair,pan,wheel_zoom,box_zoom,save,reset"

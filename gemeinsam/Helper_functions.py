@@ -69,9 +69,11 @@ def get_rec_and_play_button(fs, num_channels, max_duration = 30):
         if (button.new == True):
             button.owner.button_style='danger'
             with out:
+                ipd.clear_output()
                 print('Recording started!')
+            indata[:] = np.NaN
             sd.rec(out=indata,samplerate=fs)
-
+            return indata
         else:
             button.owner.button_style=''
             sd.stop()
@@ -82,26 +84,16 @@ def get_rec_and_play_button(fs, num_channels, max_duration = 30):
         #callback function for Play-Toggle button. Determines what happens if Play-Button is switched On/Off
         if (button.new == True):
             button.owner.button_style='Success'
-            with out:
-                print('Playback started!')
             indata_no_Nan = deleteNan(indata)
             sd.play(indata_no_Nan)
             button.owner.description = 'Stop'
             button.owner.icon = 'stop-circle'
         if (button.new == False):
             sd.stop()
-            with out:
-                print('Playback stoped!')
             button.owner.button_style = ''
             button.owner.description = 'Play'
             button.owner.icon = 'play-circle'
 
-    def on_click_Clear(button):
-        indata[:] = np.NaN
-        with out:
-            ipd.clear_output()
-    #        print('Audio-Array has been cleared!')
-        return indata
 
     #maximum-duration for recorded samples ==> recorded sample shouldn't be so long (nothing is recorded after max_duration)
     #max_duration = 30 # seconds
@@ -127,29 +119,16 @@ def get_rec_and_play_button(fs, num_channels, max_duration = 30):
         icon='play-circle' # (FontAwesome names without the `fa-` prefix)
     )
 
-    clearButton = widgets.Button(
-        description='Clear Audio-Array',
-        button_style='', # 'success', 'info', 'warning', 'danger' or ''
-        tooltip='Clear_Button',
-        icon='trash' # (FontAwesome names without the `fa-` prefix)
-    )
 
     toggleRec.observe(on_click_Rec, 'value')
 
     togglePlay.observe(on_click_Play, 'value')
 
-    clearButton.on_click(on_click_Clear)
-
     out = widgets.Output()
-    #display(out)
-
-    # object_methods = [method_name for method_name in dir(clearButton)
-    #                  if callable(getattr(clearButton, method_name))]
-    # print(object_methods)
 
     box_layout = widgets.Layout(display='flex',
                     flex_flow='column',
                     align_items='center',
                     width='100%')
 
-    return toggleRec,togglePlay,clearButton,out,box_layout,indata
+    return toggleRec,togglePlay,out,box_layout,indata
