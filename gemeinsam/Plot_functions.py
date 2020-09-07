@@ -122,19 +122,20 @@ def plot_two_intensity_curves(dt_PM_intensity, PM_intensity_val, dt_SC_intensity
 #######################################################################
 # PLOT FUNCTIONS EXERCISE 2
 #######################################################################
-def plot_interactive_spectrogram(spectroData, tVec, fVec, plottitle, dynamicRange=50):
+def plot_interactive_spectrogram(spectroData, tVec, fVec, plottitle, defaultValue=0, dynamicRange=50):
     # This function plots an interactive spectrogram displaying the spectrogram and the spectrum of the selected slice
     #
     # @param: spectroData Spectrogram data in dB
     # @param: tVec Time axis of spectrogram
     # @param: fVec Frequency axis of spectrogram
     # @param: plottitle Title of plot
+    # @param: defaultValue, defaultValue for the time-slider
     # @param: dynamicRange The dynamic range that sould be plotted, default 50dB
     #
     # @return: timeWidget Handle to time selector widget
     #
     layout=Layout(width='650px')
-    timeWidget = widgets.FloatSlider(min=tVec[0], max=tVec[-1], step=tVec[1]-tVec[0], value=tVec[0],
+    timeWidget = widgets.FloatSlider(min=tVec[0], max=tVec[-1], step=tVec[1]-tVec[0], value=defaultValue,
                                      description="Time in s")
     timeWidget.layout = layout
     timeInStft = timeWidget.value
