@@ -440,7 +440,7 @@ def plot_interactive_filter_zplane(coeffs, coeffBound, fs, plottitle):
         
     hMin = 20*np.log10(hMin) - 0.5
     hMax = 20*np.log10(hMax) + 0.5
-    p1 = figure(title=plottitle,plot_width=650, plot_height=450,
+    p1 = figure(title=plottitle,plot_width=650, plot_height=350,
                 y_range=(hMin,hMax), tools=TOOLS, tooltips=TOOLTIPS)
     p1.xaxis.axis_label = 'Frequenzy in Hz'
     p1.yaxis.axis_label = 'Magnitude in dB'
@@ -482,7 +482,7 @@ def plot_time_signal(timeSignal, fs, plottitle):
         ("index", "$index"),
         ("(x,y)", "($x, $y)"),
     ]
-    p = figure(title=plottitle,plot_width=650, plot_height=450, x_range=(0,np.divide(len(timeSignal),fs)),
+    p = figure(title=plottitle,plot_width=650, plot_height=350, x_range=(0,np.divide(len(timeSignal),fs)),
                 y_range=(min(timeSignal),max(timeSignal)), tools=TOOLS, tooltips=TOOLTIPS)
     p.xaxis.axis_label = 'Time in s'
     p.yaxis.axis_label = 'Amplitude'
@@ -499,7 +499,7 @@ def plot_spectrum(spectData, fVec, plottitle):
         ("(x,y)", "($x, $y)"),
     ]
     
-    p1 = figure(title=plottitle,plot_width=650, plot_height=450, x_range=(fVec[0],fVec[-1]),
+    p1 = figure(title=plottitle,plot_width=650, plot_height=350, x_range=(fVec[0],fVec[-1]),
                 y_range=(min(spectData),max(spectData)), tools=TOOLS, tooltips=TOOLTIPS)#, x_axis_type="log")
     p1.xaxis.axis_label = 'Frequency in Hz'
     p1.yaxis.axis_label = 'Magnitude in dB'
@@ -515,7 +515,7 @@ def plot_cepstrum(cepstData, qVec, lifterLength, plottitle, lifterLP = False):
         ("(x,y)", "($x, $y)"),
     ]
     if lifterLP:
-        p = figure(title=plottitle,plot_width=650, plot_height=450, x_range=(0,20*lifterLength),
+        p = figure(title=plottitle,plot_width=650, plot_height=350, x_range=(0,20*lifterLength),
                 y_range=(min(cepstData),0), tools=TOOLS, tooltips=TOOLTIPS)
     else:
         p = figure(title=plottitle,plot_width=650, plot_height=450, x_range=(qVec[0],qVec[-1]),
