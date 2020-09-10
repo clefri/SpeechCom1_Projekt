@@ -411,7 +411,7 @@ def plot_zplane(zerosPolynom, polesPolynom, plottitle):
     pass
 
 
-def plot_interactive_filter_zplane(coeffs, coeffBound, fs, plottitle):
+def plot_interactive_filter_zplane(coeffs, coeffBound, fs, powerDensity, plottitle):
     layout=Layout(width='650px')
     iterationWidget = widgets.IntSlider(min=0, max=coeffs.shape[0]-1, step=1, value=0,
                                      description="Iterations")
@@ -439,13 +439,18 @@ def plot_interactive_filter_zplane(coeffs, coeffBound, fs, plottitle):
         if hMax < max(abs(h)):
             hMax = max(abs(h))
         
-    hMin = 20*np.log10(hMin) - 0.5
-    hMax = 20*np.log10(hMax) + 0.5
+    #hMin = 20*np.log10(hMin) - 10
+    #hMax = 20*np.log10(hMax) + 10
+    hMin = min(powerDensity)
+    hMax = max(powerDensity)
+    
     p1 = figure(title=plottitle,plot_width=650, plot_height=350,
                 y_range=(hMin,hMax), tools=TOOLS, tooltips=TOOLTIPS)
     p1.xaxis.axis_label = 'Frequenzy in Hz'
     p1.yaxis.axis_label = 'Magnitude in dB'
     
+    p1.line(np.linspace(0, fs/2, len(powerDensity)), powerDensity, line_width = 0.2, color = 'grey')
+
     spectrumLine = p1.line(wMatrix[iterationIndex], 20*np.log10(hMatrix[iterationIndex]), color = 'blue')
     
     functionPoles = np.roots(coeffs[iterationIndex,0:coeffBound])
