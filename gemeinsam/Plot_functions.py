@@ -122,7 +122,7 @@ def plot_two_intensity_curves(dt_PM_intensity, PM_intensity_val, dt_SC_intensity
 #######################################################################
 # PLOT FUNCTIONS EXERCISE 2
 #######################################################################
-def plot_interactive_spectrogram(spectroData, tVec, fVec, plottitle, defaultValue=0, dynamicRange=50):
+def plot_interactive_spectrogram(spectroData, tVec, fVec, plottitle, exportValue=0, dynamicRange=50):
     # This function plots an interactive spectrogram displaying the spectrogram and the spectrum of the selected slice
     #
     # @param: spectroData Spectrogram data in dB
@@ -135,7 +135,7 @@ def plot_interactive_spectrogram(spectroData, tVec, fVec, plottitle, defaultValu
     # @return: timeWidget Handle to time selector widget
     #
     layout=Layout(width='650px')
-    timeWidget = widgets.FloatSlider(min=tVec[0], max=tVec[-1], step=tVec[1]-tVec[0], value=defaultValue,
+    timeWidget = widgets.FloatSlider(min=tVec[0], max=tVec[-1], step=tVec[1]-tVec[0], value=exportValue,
                                      description="Time in s")
     timeWidget.layout = layout
     timeInStft = timeWidget.value
@@ -161,13 +161,13 @@ def plot_interactive_spectrogram(spectroData, tVec, fVec, plottitle, defaultValu
     p1.grid.visible=False
     spectrumLine = p1.line([timeInStft, timeInStft], [fVec[0], fVec[-1]], line_width = 2, color = 'red')
 
-    p2 = figure(title="Spectrum of Selected STFT Frame",plot_width=650, plot_height=300, x_range=(fVec[0],fVec[-1]),
+    p2 = figure(title="Spectrum of Selected STFT Frame",plot_width=650, plot_height=250, x_range=(fVec[0],fVec[-1]),
                 y_range=(np.min(spectroData[:,stftFrame]),0), tools=TOOLS, tooltips=TOOLTIPS)
     p2.xaxis.axis_label = 'Frequency in Hz'
     p2.yaxis.axis_label = 'relative Magnitude in dB'
     spectrumPlot = p2.line(fVec, spectroData[:,stftFrame], line_width = 2, color = 'red', legend_label='slice of spectrogram')
     p2.line(fVec, spectroData.max()-dynamicRange, line_width=1, color='grey', legend_label='dynamic range')
-    p2.legend.location = "bottom_center"
+    p2.legend.location = "top_right" #"bottom_center"
     p2.legend.orientation = 'horizontal'
     
     pAll = gridplot([[p2], [p1]])
@@ -243,7 +243,7 @@ def plot_spectrogram_with_formants(spectroData, tVec, fVec, formantValues, forma
     pass
 
 
-def plot_F1_F2_in_vowel_chart(audioVal, dt_snd, F1, F2, formant_tVec, plottitle):
+def plot_F1_F2_in_vowel_chart(audioVal, dt_snd, F1, F2, formant_tVec, plottitle,exportRange,lineSwitch=True):
     # This function plot the formants F1 & F2 in a vowel chart with selectable time region from the corresponding audio file
     #
     # @param: audioVal Values of the audio signal in a numpy array
@@ -252,13 +252,15 @@ def plot_F1_F2_in_vowel_chart(audioVal, dt_snd, F1, F2, formant_tVec, plottitle)
     # @param: F2 Values of Formant F2
     # @param: formant_tVec Time axis of Formants
     # @param: plottitle Title of Plot
+    # @param: exportRange Time Range for export
+    # @param: lineSwitch True: connects the vowel dots with lines, False: no lines between vowel dots, default True
     #
     # @return: timeWidget Handle to time selector widget
     #
     layout = Layout(width='650px')
 
     timeWidget = widgets.FloatRangeSlider(
-        value=[formant_tVec[0], formant_tVec[-1]],
+        value=[exportRange[0], exportRange[1]],
         min=formant_tVec[0],
         max=formant_tVec[-1],
         step=formant_tVec[1] - formant_tVec[0],
@@ -303,7 +305,12 @@ def plot_F1_F2_in_vowel_chart(audioVal, dt_snd, F1, F2, formant_tVec, plottitle)
 
     p3.xaxis.axis_label = 'F2 in Hz'
     p3.yaxis.axis_label = 'F1 in Hz'
-    formantScatterPlot = p3.scatter(F2[timeRangeStartFrame:timeRangeEndFrame], F1[timeRangeStartFrame:timeRangeEndFrame],legend_label='detected formants')
+
+    formantScatterPlot = p3.scatter(F2[timeRangeStartFrame:timeRangeEndFrame],
+                                    F1[timeRangeStartFrame:timeRangeEndFrame], legend_label='detected formants')
+
+    if lineSwitch:
+        formantLinePlot = p3.line(F2[timeRangeStartFrame:timeRangeEndFrame],F1[timeRangeStartFrame:timeRangeEndFrame], line_width=1.5)
 
     # calculated means from Sendlmeier paper as Backgound
     sendlmeierVowels = ['a','a:','e:','e2','e2:','i','i2:','o','o:','u','u2:','y','y:','oe','o/:','e3']
@@ -335,6 +342,9 @@ def plot_F1_F2_in_vowel_chart(audioVal, dt_snd, F1, F2, formant_tVec, plottitle)
         timeRangeEndFill.data_source.data['x'] = [timeRangeEnd, dt_snd[-1], dt_snd[-1], timeRangeEnd]
         formantScatterPlot.data_source.data = {'x': F2[timeRangeStartFrame:timeRangeEndFrame],
                                                'y': F1[timeRangeStartFrame:timeRangeEndFrame]}
+        if lineSwitch:
+            formantLinePlot.data_source.data = {'x': F2[timeRangeStartFrame:timeRangeEndFrame],
+                                                'y': F1[timeRangeStartFrame:timeRangeEndFrame]}
         push_notebook()
 
     def on_value_change(change):
@@ -362,7 +372,7 @@ def plot_autocorr(R, plottitle):
         ("index", "$index"),
         ("(x,y)", "($x, $y)"),
     ]
-    p = figure(title=plottitle,plot_width=650, plot_height=450,
+    p = figure(title=plottitle,plot_width=650, plot_height=350,
                 y_range=(min(R),max(R)), tools=TOOLS, tooltips=TOOLTIPS)
     p.xaxis.axis_label = 'Lag in Samples'
     p.yaxis.axis_label = 'Auto-Correlation'
@@ -411,9 +421,9 @@ def plot_zplane(zerosPolynom, polesPolynom, plottitle):
     pass
 
 
-def plot_interactive_filter_zplane(coeffs, coeffBound, fs, powerDensity, plottitle):
+def plot_interactive_filter_zplane(coeffs, coeffBound, fs, powerDensity, plottitle, exportValue):
     layout=Layout(width='650px')
-    iterationWidget = widgets.IntSlider(min=0, max=coeffs.shape[0]-1, step=1, value=0,
+    iterationWidget = widgets.IntSlider(min=0, max=coeffs.shape[0]-1, step=1, value=exportValue,
                                      description="Iterations")
     iterationWidget.layout = layout
     iterationIndex = iterationWidget.value
@@ -455,7 +465,7 @@ def plot_interactive_filter_zplane(coeffs, coeffBound, fs, powerDensity, plottit
     
     functionPoles = np.roots(coeffs[iterationIndex,0:coeffBound])
     
-    p2 = figure(title='Z Plane',plot_width=650, plot_height=600,
+    p2 = figure(title='Z Plane',plot_width=300, plot_height=300,
                 x_range=(-1.2, 1.2), y_range=(-1.2, 1.2), tools=TOOLS, tooltips=TOOLTIPS)
     p2.xaxis.axis_label = 'Real Part'
     p2.yaxis.axis_label = 'Imaginary Part'
@@ -488,7 +498,7 @@ def plot_time_signal(timeSignal, fs, plottitle):
         ("index", "$index"),
         ("(x,y)", "($x, $y)"),
     ]
-    p = figure(title=plottitle,plot_width=650, plot_height=350, x_range=(0,np.divide(len(timeSignal),fs)),
+    p = figure(title=plottitle,plot_width=650, plot_height=250, x_range=(0,np.divide(len(timeSignal),fs)),
                 y_range=(min(timeSignal),max(timeSignal)), tools=TOOLS, tooltips=TOOLTIPS)
     p.xaxis.axis_label = 'Time in s'
     p.yaxis.axis_label = 'Amplitude'
@@ -505,7 +515,7 @@ def plot_spectrum(spectData, fVec, plottitle):
         ("(x,y)", "($x, $y)"),
     ]
     
-    p1 = figure(title=plottitle,plot_width=650, plot_height=350, x_range=(fVec[0],fVec[-1]),
+    p1 = figure(title=plottitle,plot_width=650, plot_height=250, x_range=(fVec[0],fVec[-1]),
                 y_range=(min(spectData),max(spectData)), tools=TOOLS, tooltips=TOOLTIPS)#, x_axis_type="log")
     p1.xaxis.axis_label = 'Frequency in Hz'
     p1.yaxis.axis_label = 'Magnitude in dB'
@@ -554,7 +564,7 @@ def get_plot_time_domain_sig(snd, dt_snd, plottitle, showPlot):
         ("index", "$index"),
         ("(x,y)", "($x, $y)"),
     ]
-    p = figure(title=plottitle, plot_width=600, plot_height=400, x_range=(dt_snd[0], dt_snd[-1]),
+    p = figure(title=plottitle, plot_width=600, plot_height=250, x_range=(dt_snd[0], dt_snd[-1]),
                y_range=(np.floor(np.min(snd) * 10) / 10, np.ceil(np.max(snd) * 10) / 10), tools=TOOLS,
                tooltips=TOOLTIPS)
     p.line(dt_snd, snd, line_width=0.5, color='#BEBEBE')
