@@ -4,7 +4,7 @@ argon2-cffi==20.1.0
 attrs==20.2.0
 audioread==2.1.8
 backcall==0.2.0
-bleach==3.1.5
+bleach==3.3.0
 bokeh==2.0.2
 cached-property==1.5.1
 cachetools==4.1.0
