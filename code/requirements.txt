@@ -8,7 +8,7 @@ bleach==3.1.5
 bokeh==2.0.2
 cached-property==1.5.1
 cachetools==4.1.0
-certifi==2020.4.5.1
+certifi==2022.12.7
 cffi==1.14.2
 chardet==3.0.4
 cycler==0.10.0
